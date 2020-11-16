@@ -15,6 +15,7 @@ import {
 } from "@material-ui/core";
 import { ArrowDownward } from "@material-ui/icons";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { toHalfKatakana, toFullKatakana } from "./katakana";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -176,11 +177,94 @@ const AlphabetConverter = (classes) => {
 };
 
 const KatakanaConverter = (classes) => {
+  const [textWidth, setTextWidth] = React.useState("half");
+  const [beforeText, setBeforeText] = React.useState("");
+  const [afterText, setAfterText] = React.useState("");
+  const fullPlaceholder = "アイウエオ";
+  const halfPlaceholder = "ｱｲｳｴｵ";
+  const [beforePlaceholder, setBeforePlaceholder] = React.useState(
+    fullPlaceholder
+  );
+  const [afterPlaceholder, setAfterPlaceholder] = React.useState(
+    halfPlaceholder
+  );
+
+  const handleTextWidth = (event) => {
+    const value = event.target.value;
+    setTextWidth(value);
+    setBeforePlaceholder(value === "half" ? fullPlaceholder : halfPlaceholder);
+    setAfterPlaceholder(value === "half" ? halfPlaceholder : fullPlaceholder);
+    setAfterText(
+      value === "half" ? toHalfKatakana(afterText) : toFullKatakana(afterText)
+    );
+  };
+
+  const handleChangeText = (event) => {
+    const value = event.target.value;
+    setBeforeText(value);
+    setAfterText(
+      textWidth === "half" ? toHalfKatakana(value) : toFullKatakana(value)
+    );
+  };
+
+  const handleClear = () => {
+    setBeforeText("");
+    setAfterText("");
+  };
+
   return (
     <div className={classes.root}>
       <Typography variant="h6" className={classes.title}>
         カタカナを変換する
       </Typography>
+      <FormControl
+        component="fieldset"
+        fullWidth
+        margin="normal"
+        className={classes.formControl}
+      >
+        <RadioGroup
+          row
+          aria-label="alphabetConverter"
+          name="alphabetConverter"
+          value={textWidth}
+          onChange={handleTextWidth}
+        >
+          <FormControlLabel value="half" control={<Radio />} label="半角" />
+          <FormControlLabel value="full" control={<Radio />} label="全角" />
+        </RadioGroup>
+        <TextareaAutosize
+          rowsMin={5}
+          placeholder={beforePlaceholder}
+          value={beforeText}
+          onChange={handleChangeText}
+        />
+        <ArrowDownwardIcon />
+        <TextareaAutosize
+          rowsMin={5}
+          placeholder={afterPlaceholder}
+          value={afterText}
+        />
+        <MyButton
+          variant="outlined"
+          size="medium"
+          margin="normal"
+          className={classes.margin}
+          onClick={handleClear}
+        >
+          クリア
+        </MyButton>
+        <CopyToClipboard text={afterText}>
+          <MyButton
+            variant="contained"
+            size="medium"
+            color="secondary"
+            className={classes.margin}
+          >
+            コピー
+          </MyButton>
+        </CopyToClipboard>
+      </FormControl>
     </div>
   );
 };
